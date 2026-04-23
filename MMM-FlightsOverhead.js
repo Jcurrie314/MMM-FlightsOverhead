@@ -47,6 +47,11 @@ Module.register("MMM-FlightsOverhead", {
 			this.flights = payload;
 			this.errorMessage = null;
 			this.loaded = true;
+			if (payload.length === 0) {
+				this.hide(this.config.animationSpeed);
+			} else {
+				this.show(this.config.animationSpeed);
+			}
 			this.updateDom(this.config.animationSpeed);
 		} else if (notification === "FLIGHTS_ERROR") {
 			this.errorMessage = payload;
