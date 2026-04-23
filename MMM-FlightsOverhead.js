@@ -138,7 +138,7 @@ Module.register("MMM-FlightsOverhead", {
 
 			table.appendChild(tr1);
 
-			// Row 2: altitude · speed  |  distance (right-aligned)
+			// Row 2: altitude · speed (left)  |  distance (right)
 			var tr2 = document.createElement("tr");
 			tr2.className = "flight-row-details";
 
@@ -147,15 +147,20 @@ Module.register("MMM-FlightsOverhead", {
 
 			var detailTd = document.createElement("td");
 			detailTd.className = "flight-details secondary-text";
-			detailTd.colSpan = 2;
-			detailTd.innerText = self.formatAlt(flight.altitudeFt) +
-				"  \u00b7  " + flight.speedKt + " kt";
-			tr2.appendChild(detailTd);
+			detailTd.colSpan = 3;
+			detailTd.style.display = "flex";
+			detailTd.style.justifyContent = "space-between";
 
-			var distTd = document.createElement("td");
-			distTd.className = "flight-dist secondary-text";
-			distTd.innerText = flight.distanceMi + " mi";
-			tr2.appendChild(distTd);
+			var detailLeft = document.createElement("span");
+			detailLeft.innerText = self.formatAlt(flight.altitudeFt) +
+				"  \u00b7  " + flight.speedKt + " kt";
+
+			var detailRight = document.createElement("span");
+			detailRight.innerText = flight.distanceMi + " mi";
+
+			detailTd.appendChild(detailLeft);
+			detailTd.appendChild(detailRight);
+			tr2.appendChild(detailTd);
 
 			table.appendChild(tr2);
 		});
