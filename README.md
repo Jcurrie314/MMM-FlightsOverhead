@@ -31,11 +31,14 @@ No `npm install` needed — no external dependencies.
 
 ---
 
-## OpenSky Account
+## OpenSky Credentials
 
-The OpenSky Network API works without an account, but authenticated requests get a significantly higher rate limit. A free account is strongly recommended.
+This module uses the OpenSky Network OAuth2 API. You'll need a free account and an API client:
 
-Register at [opensky-network.org](https://opensky-network.org/index.php?option=com_users&view=registration).
+1. Register at [opensky-network.org](https://opensky-network.org/index.php?option=com_users&view=registration)
+2. Go to **Account → My OpenSky → API Client Credentials**
+3. Create a new client — download the `credentials.json` file
+4. Use the `clientId` and `clientSecret` values in your config
 
 ---
 
@@ -49,8 +52,8 @@ Add the module to your `config/config.js`:
     position: "top_right",
     header: "Flights",
     config: {
-        username: "your_opensky_username",
-        password: "your_opensky_password",
+        clientId: "your-client-id",
+        clientSecret: "your-client-secret",
         lat: 37.7749,     // Your latitude
         lon: -122.4194,   // Your longitude
         radius: 50,       // Search radius in km (~31 miles)
@@ -65,8 +68,8 @@ Add the module to your `config/config.js`:
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `username` | `null` | **Required.** OpenSky Network username |
-| `password` | `null` | **Required.** OpenSky Network password |
+| `clientId` | `null` | **Required.** OpenSky Network OAuth2 client ID |
+| `clientSecret` | `null` | **Required.** OpenSky Network OAuth2 client secret |
 | `lat` | `null` | **Required.** Your latitude (decimal degrees) |
 | `lon` | `null` | **Required.** Your longitude (decimal degrees) |
 | `radius` | `50` | Search radius in **km** (≈ 31 miles) |

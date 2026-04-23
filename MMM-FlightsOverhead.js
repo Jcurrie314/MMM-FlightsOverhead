@@ -3,8 +3,8 @@
 Module.register("MMM-FlightsOverhead", {
 
 	defaults: {
-		username: null,       // OpenSky Network username (register free at opensky-network.org)
-		password: null,       // OpenSky Network password
+		clientId: null,       // OpenSky Network OAuth2 client ID
+		clientSecret: null,   // OpenSky Network OAuth2 client secret
 		lat: null,            // Your latitude  (decimal degrees, e.g. 37.7749)
 		lon: null,            // Your longitude (decimal degrees, e.g. -122.4194)
 		radius: 50,           // Search radius in km (~31 miles)
@@ -26,9 +26,9 @@ Module.register("MMM-FlightsOverhead", {
 		self.loaded = false;
 		self.errorMessage = null;
 
-		if (!self.config.username || !self.config.password ||
+		if (!self.config.clientId || !self.config.clientSecret ||
 			self.config.lat === null || self.config.lon === null) {
-			Log.error("MMM-FlightsOverhead: username, password, lat, and lon are required.");
+			Log.error("MMM-FlightsOverhead: clientId, clientSecret, lat, and lon are required.");
 			return;
 		}
 

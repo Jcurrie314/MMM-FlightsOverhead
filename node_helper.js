@@ -1,11 +1,14 @@
 const NodeHelper = require("node_helper");
 const https = require("https");
+const querystring = require("querystring");
 
 module.exports = NodeHelper.create({
 
 	start: function () {
 		this.routeCache = {};         // icao24 -> { departure, arrival, fetchedAt }
 		this.routeRateLimitUntil = 0; // epoch ms — skip route fetches until this time
+		this.accessToken = null;
+		this.tokenExpiresAt = 0;      // epoch ms
 	},
 
 	socketNotificationReceived: function (notification, payload) {
@@ -16,11 +19,12 @@ module.exports = NodeHelper.create({
 
 	fetchFlights: async function (config) {
 		try {
-			const states  = await this.fetchStates(config);
+			const token   = await this.getAccessToken(config);
+			const states  = await this.fetchStates(config, token);
 			let flights   = this.processStates(states, config);
 
 			if (config.showRoute && flights.length > 0 && Date.now() >= this.routeRateLimitUntil) {
-				flights = await this.enrichWithRoutes(flights, config);
+				flights = await this.enrichWithRoutes(flights, config, token);
 			}
 
 			this.sendSocketNotification("FLIGHTS_DATA", flights);
@@ -30,10 +34,34 @@ module.exports = NodeHelper.create({
 		}
 	},
 
+	// ─── OAuth2 token ────────────────────────────────────────────────────────
+
+	getAccessToken: async function (config) {
+		// Return cached token if still valid (with 60s buffer)
+		if (this.accessToken && Date.now() < this.tokenExpiresAt - 60000) {
+			return this.accessToken;
+		}
+
+		const body = querystring.stringify({
+			grant_type:    "client_credentials",
+			client_id:     config.clientId,
+			client_secret: config.clientSecret,
+		});
+
+		const data = await this.httpPost(
+			"https://auth.opensky-network.org/auth/realms/opensky-network/protocol/openid-connect/token",
+			body
+		);
+
+		this.accessToken  = data.access_token;
+		this.tokenExpiresAt = Date.now() + (data.expires_in * 1000);
+		return this.accessToken;
+	},
+
 	// ─── OpenSky states ──────────────────────────────────────────────────────
 
-	fetchStates: function (config) {
-		const { lat, lon, radius, username, password } = config;
+	fetchStates: function (config, token) {
+		const { lat, lon, radius } = config;
 		const deltaLat = radius / 111;
 		const deltaLon = radius / (111 * Math.cos(lat * Math.PI / 180));
 
@@ -44,7 +72,7 @@ module.exports = NodeHelper.create({
 			`lomax=${(lon + deltaLon).toFixed(4)}`,
 		].join("&");
 
-		return this.apiGet(`https://opensky-network.org/api/states/all?${query}`, username, password);
+		return this.apiGet(`https://opensky-network.org/api/states/all?${query}`, token);
 	},
 
 	processStates: function (data, config) {
@@ -86,8 +114,8 @@ module.exports = NodeHelper.create({
 
 	// ─── Route enrichment ────────────────────────────────────────────────────
 
-	enrichWithRoutes: async function (flights, config) {
-		const now        = Math.floor(Date.now() / 1000);
+	enrichWithRoutes: async function (flights, config, token) {
+		const now         = Math.floor(Date.now() / 1000);
 		const cacheMaxAge = 2 * 60 * 60; // 2 hours — a flight's route doesn't change mid-air
 		let firstUncached = true;
 
@@ -114,7 +142,7 @@ module.exports = NodeHelper.create({
 			try {
 				const begin = now - (12 * 60 * 60);
 				const url   = `https://opensky-network.org/api/flights/aircraft?icao24=${flight.icao24}&begin=${begin}&end=${now}`;
-				const data  = await this.apiGet(url, config.username, config.password);
+				const data  = await this.apiGet(url, token);
 				const legs  = Array.isArray(data) ? data : [];
 
 				// Prefer a leg with both airports; fall back to departure-only
@@ -177,16 +205,15 @@ module.exports = NodeHelper.create({
 		return new Promise(resolve => setTimeout(resolve, ms));
 	},
 
-	apiGet: function (url, username, password) {
+	apiGet: function (url, token) {
 		return new Promise((resolve, reject) => {
-			const u    = new URL(url);
-			const auth = Buffer.from(`${username}:${password}`).toString("base64");
+			const u = new URL(url);
 
 			const options = {
 				hostname: u.hostname,
 				path:     u.pathname + u.search,
 				method:   "GET",
-				headers:  { "Authorization": `Basic ${auth}` },
+				headers:  { "Authorization": `Bearer ${token}` },
 			};
 
 			const req = https.request(options, (res) => {
@@ -206,6 +233,43 @@ module.exports = NodeHelper.create({
 
 			req.setTimeout(15000, () => req.destroy(new Error("Request timed out")));
 			req.on("error", reject);
+			req.end();
+		});
+	},
+
+	httpPost: function (url, body) {
+		return new Promise((resolve, reject) => {
+			const u = new URL(url);
+
+			const options = {
+				hostname: u.hostname,
+				path:     u.pathname + u.search,
+				method:   "POST",
+				headers:  {
+					"Content-Type":   "application/x-www-form-urlencoded",
+					"Content-Length": Buffer.byteLength(body),
+				},
+			};
+
+			const req = https.request(options, (res) => {
+				let data = "";
+				res.on("data", chunk => data += chunk);
+				res.on("end", () => {
+					if (res.statusCode >= 400) {
+						reject(new Error(`Token request failed: HTTP ${res.statusCode}`));
+						return;
+					}
+					try {
+						resolve(JSON.parse(data));
+					} catch (e) {
+						reject(new Error("Failed to parse token response"));
+					}
+				});
+			});
+
+			req.setTimeout(15000, () => req.destroy(new Error("Token request timed out")));
+			req.on("error", reject);
+			req.write(body);
 			req.end();
 		});
 	},
