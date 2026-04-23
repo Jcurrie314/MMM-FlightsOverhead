@@ -130,19 +130,15 @@ Module.register("MMM-FlightsOverhead", {
 
 			var routeTd = document.createElement("td");
 			routeTd.className = "flight-route secondary-text";
+			routeTd.colSpan = 2;
 			if (self.config.showRoute && flight.departure) {
 				routeTd.innerText = flight.departure + " \u2192 " + (flight.arrival || "?");
 			}
 			tr1.appendChild(routeTd);
 
-			var distTd = document.createElement("td");
-			distTd.className = "flight-dist secondary-text";
-			distTd.innerText = flight.distanceMi + " mi";
-			tr1.appendChild(distTd);
-
 			table.appendChild(tr1);
 
-			// Row 2: altitude · speed · heading
+			// Row 2: altitude · speed  |  distance (right-aligned)
 			var tr2 = document.createElement("tr");
 			tr2.className = "flight-row-details";
 
@@ -151,11 +147,15 @@ Module.register("MMM-FlightsOverhead", {
 
 			var detailTd = document.createElement("td");
 			detailTd.className = "flight-details secondary-text";
-			detailTd.colSpan = 3;
+			detailTd.colSpan = 2;
 			detailTd.innerText = self.formatAlt(flight.altitudeFt) +
-				"  \u00b7  " + flight.speedKt + " kt" +
-				"  \u00b7  " + flight.compass;
+				"  \u00b7  " + flight.speedKt + " kt";
 			tr2.appendChild(detailTd);
+
+			var distTd = document.createElement("td");
+			distTd.className = "flight-dist secondary-text";
+			distTd.innerText = flight.distanceMi + " mi";
+			tr2.appendChild(distTd);
 
 			table.appendChild(tr2);
 		});
