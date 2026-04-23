@@ -1,0 +1,91 @@
+/**
+ * MMM-FlightsOverhead
+ * Styles for the flights overhead MagicMirror² module
+ */
+
+/* ── Font size overrides ───────────────────────────────────────────────── */
+.MMM-FlightsOverhead .xsmall { font-size: 15px; line-height: 20px; }
+.MMM-FlightsOverhead .small  { font-size: 20px; line-height: 25px; }
+.MMM-FlightsOverhead .medium { font-size: 30px; line-height: 35px; }
+.MMM-FlightsOverhead .large  { font-size: 65px; line-height: 65px; }
+
+/* ── Table reset ───────────────────────────────────────────────────────── */
+.MMM-FlightsOverhead table,
+.MMM-FlightsOverhead tr,
+.MMM-FlightsOverhead td {
+	height: auto;
+	font-family: inherit;
+}
+
+.MMM-FlightsOverhead table td {
+	padding: 0;
+	margin: 0;
+}
+
+/* ── Colours ───────────────────────────────────────────────────────────── */
+.MMM-FlightsOverhead .secondary-text {
+	font-size: 75%;
+	color: #aaaaaa;
+}
+
+.MMM-FlightsOverhead .loading,
+.MMM-FlightsOverhead .flights-empty {
+	color: #666666;
+}
+
+/* ── Table layout ──────────────────────────────────────────────────────── */
+.MMM-FlightsOverhead .flights-table {
+	border-collapse: collapse;
+	width: 100%;
+	margin: 0;
+}
+
+.MMM-FlightsOverhead .flight-row-header {
+	padding-top: 8px;
+}
+
+.MMM-FlightsOverhead .flight-row-details {
+	padding-bottom: 8px;
+}
+
+/* ── Plane icon ────────────────────────────────────────────────────────── */
+.MMM-FlightsOverhead .flight-icon {
+	width: 1px;
+	padding-right: 10px;
+	vertical-align: middle;
+	color: #4a90e2;
+}
+
+.MMM-FlightsOverhead .flight-icon-wrapper {
+	display: inline-block;
+	transform-origin: center;
+	line-height: 0;
+}
+
+/* ── Callsign ──────────────────────────────────────────────────────────── */
+.MMM-FlightsOverhead .flight-callsign {
+	white-space: nowrap;
+	width: 1px;
+	padding-right: 16px;
+	vertical-align: middle;
+	font-weight: bold;
+}
+
+/* ── Route (DEP → ARR) ─────────────────────────────────────────────────── */
+.MMM-FlightsOverhead .flight-route {
+	vertical-align: middle;
+	letter-spacing: 0.05em;
+}
+
+/* ── Distance (right-aligned) ──────────────────────────────────────────── */
+.MMM-FlightsOverhead .flight-dist {
+	white-space: nowrap;
+	width: 1px;
+	text-align: right;
+	vertical-align: middle;
+}
+
+/* ── Detail row (alt · speed · heading) ────────────────────────────────── */
+.MMM-FlightsOverhead .flight-details {
+	padding-bottom: 10px;
+}
